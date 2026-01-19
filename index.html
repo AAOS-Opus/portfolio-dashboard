@@ -1,0 +1,3050 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS Analytics Dashboard</title>
+
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        :root {
+            /* ========== DARK THEME (Default) ========== */
+
+            /* Backgrounds */
+            --bg-primary: #111827;
+            --bg-secondary: #1F2937;
+            --bg-tertiary: rgba(255, 255, 255, 0.05);
+            --bg-hover: rgba(255, 255, 255, 0.02);
+            --bg-hover-elevated: rgba(255, 255, 255, 0.08);
+
+            /* Text */
+            --text-primary: #F3F4F6;
+            --text-secondary: #9CA3AF;
+            --text-muted: #6B7280;
+            --text-on-accent: #FFFFFF;
+
+            /* Borders */
+            --border-color: #374151;
+            --border-color-light: rgba(55, 65, 81, 0.5);
+            --border-card: rgba(255, 255, 255, 0.05);
+
+            /* Accent Colors */
+            --accent-primary: #6366F1;
+            --accent-secondary: #8B5CF6;
+            --accent-glow: rgba(99, 102, 241, 0.15);
+            --accent-muted: rgba(99, 102, 241, 0.05);
+            --accent-hover: rgba(99, 102, 241, 0.08);
+            --accent-border: rgba(99, 102, 241, 0.3);
+            --accent-bg: rgba(99, 102, 241, 0.2);
+            --accent-text: #818CF8;
+
+            /* Status: Success */
+            --accent-success: #10B981;
+            --accent-success-light: #34D399;
+            --accent-success-bg: rgba(16, 185, 129, 0.2);
+            --accent-success-bg-light: rgba(16, 185, 129, 0.15);
+
+            /* Status: Warning */
+            --accent-warning: #F59E0B;
+            --accent-warning-light: #FBBF24;
+            --accent-warning-bg: rgba(245, 158, 11, 0.2);
+
+            /* Status: Danger */
+            --accent-danger: #EF4444;
+            --accent-danger-light: #F87171;
+            --accent-danger-bg: rgba(239, 68, 68, 0.2);
+
+            /* Status: Info */
+            --accent-info: #3B82F6;
+            --accent-info-light: #60A5FA;
+            --accent-info-bg: rgba(59, 130, 246, 0.2);
+
+            /* Neutral */
+            --neutral-bg: rgba(107, 114, 128, 0.2);
+            --neutral-text: #9CA3AF;
+
+            /* Special Badges */
+            --accent-pro: #818CF8;
+            --accent-pro-bg: rgba(99, 102, 241, 0.2);
+            --accent-enterprise: #A78BFA;
+            --accent-enterprise-bg: rgba(139, 92, 246, 0.2);
+
+            /* Sidebar */
+            --sidebar-bg: #111827;
+
+            /* Cards */
+            --card-bg: #1F2937;
+
+            /* Charts */
+            --chart-line: #6366F1;
+            --chart-gradient-from: rgba(99, 102, 241, 0.5);
+            --chart-gradient-to: rgba(99, 102, 241, 0.0);
+            --chart-funnel-from: rgba(99, 102, 241, 0.15);
+            --chart-funnel-to: rgba(99, 102, 241, 0.02);
+
+            /* Overlay */
+            --overlay-dark: rgba(0, 0, 0, 0.2);
+            --overlay-light: rgba(255, 255, 255, 0.2);
+
+            /* Spacing & Effects */
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --transition: all 0.3s ease;
+
+            /* Legacy aliases (for backward compatibility) */
+            --bg-body: var(--bg-primary);
+            --bg-card: var(--card-bg);
+            --bg-sidebar: var(--sidebar-bg);
+            --success: var(--accent-success);
+            --danger: var(--accent-danger);
+            --warning: var(--accent-warning);
+        }
+
+        [data-theme="light"] {
+            /* ========== LIGHT THEME (Aurora Cockpit) ========== */
+
+            /* Backgrounds */
+            --bg-primary: #FAFAFA;
+            --bg-secondary: #FFFFFF;
+            --bg-tertiary: #f0f4f8;
+            --bg-hover: #e8f4f6;
+            --bg-hover-elevated: #dbeef2;
+            --sidebar-bg: #d5e8ec;
+            --card-bg: #FFFFFF;
+            --bg-gradient: linear-gradient(135deg, #b8e6f0 0%, #f0fafa 100%);
+
+            /* Text */
+            --text-primary: #0a1628;
+            --text-secondary: #334155;
+            --text-muted: #64748b;
+            --text-on-accent: #FFFFFF;
+
+            /* Borders */
+            --border-color: #d5e8ec;
+            --border-color-light: #e2e8f0;
+            --border-card: #d5e8ec;
+
+            /* Accents */
+            --accent-primary: #3b82f6;
+            --accent-secondary: #0ea5e9;
+            --accent-glow: rgba(59, 130, 246, 0.3);
+            --accent-muted: rgba(59, 130, 246, 0.08);
+            --accent-hover: rgba(59, 130, 246, 0.12);
+            --accent-border: rgba(59, 130, 246, 0.4);
+            --accent-bg: rgba(59, 130, 246, 0.15);
+            --accent-text: #2563eb;
+
+            /* Charts */
+            --chart-line: #0ea5e9;
+            --chart-gradient-from: rgba(14, 165, 233, 0.4);
+            --chart-gradient-to: rgba(14, 165, 233, 0.0);
+            --chart-funnel-from: rgba(14, 165, 233, 0.2);
+            --chart-funnel-to: rgba(14, 165, 233, 0.02);
+
+            /* Overlay adjustments for light theme */
+            --overlay-dark: rgba(0, 0, 0, 0.08);
+            --overlay-light: rgba(255, 255, 255, 0.6);
+
+            /* Shadow adjustment for light theme */
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+
+        /* Light theme gradient application */
+        [data-theme="light"] body {
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+        }
+
+        [data-theme="light"] .sidebar {
+            background-color: var(--sidebar-bg);
+            border-right-color: rgba(30, 77, 92, 0.15);
+        }
+
+        [data-theme="light"] .card {
+            background-color: var(--card-bg);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        [data-theme="dark"] {
+            /* ========== AURORA DARK THEME (Teal) ========== */
+
+            /* Backgrounds */
+            --bg-primary: #0a1a1f;
+            --bg-secondary: #142a30;
+            --bg-tertiary: rgba(30, 61, 66, 0.5);
+            --bg-hover: rgba(0, 212, 170, 0.08);
+            --bg-hover-elevated: rgba(0, 212, 170, 0.12);
+            --sidebar-bg: transparent;
+            --card-bg: rgba(20, 42, 48, 0.6);
+            --bg-gradient: linear-gradient(135deg, #0a1a1f 0%, #1a3038 100%);
+
+            /* Text */
+            --text-primary: #f5f9fa;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --text-on-accent: #0a1a1f;
+
+            /* Borders */
+            --border-color: #1e3d42;
+            --border-color-light: rgba(30, 61, 66, 0.5);
+            --border-card: rgba(0, 212, 170, 0.15);
+
+            /* Accents - Teal Green */
+            --accent-primary: #00D4AA;
+            --accent-secondary: #22c5a1;
+            --accent-glow: rgba(0, 212, 170, 0.25);
+            --accent-muted: rgba(0, 212, 170, 0.08);
+            --accent-hover: rgba(0, 212, 170, 0.12);
+            --accent-border: rgba(0, 212, 170, 0.4);
+            --accent-bg: rgba(0, 212, 170, 0.15);
+            --accent-text: #00D4AA;
+
+            /* Charts - Teal palette */
+            --chart-line: #00D4AA;
+            --chart-gradient-from: rgba(0, 212, 170, 0.4);
+            --chart-gradient-to: rgba(0, 212, 170, 0.0);
+            --chart-funnel-from: rgba(0, 212, 170, 0.2);
+            --chart-funnel-to: rgba(0, 212, 170, 0.02);
+
+            /* Shadow for dark theme */
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+        }
+
+        [data-theme="midnight"] {
+            /* ========== AURORA MIDNIGHT THEME (True Blue) ========== */
+
+            /* Backgrounds */
+            --bg-primary: #0b1830;
+            --bg-secondary: #152a47;
+            --bg-tertiary: rgba(27, 58, 95, 0.5);
+            --bg-hover: rgba(26, 140, 255, 0.08);
+            --bg-hover-elevated: rgba(26, 140, 255, 0.12);
+            --sidebar-bg: transparent;
+            --card-bg: rgba(20, 40, 60, 0.6);
+            --bg-gradient: linear-gradient(135deg, #0d1b2a 0%, #1b3a5f 100%);
+
+            /* Text */
+            --text-primary: #f5f9fa;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --text-on-accent: #0b1830;
+
+            /* Borders */
+            --border-color: #1b3a5f;
+            --border-color-light: rgba(27, 58, 95, 0.5);
+            --border-card: rgba(26, 140, 255, 0.15);
+
+            /* Accents - True Blue */
+            --accent-primary: #1A8CFF;
+            --accent-secondary: #3b9eff;
+            --accent-glow: rgba(26, 140, 255, 0.25);
+            --accent-muted: rgba(26, 140, 255, 0.08);
+            --accent-hover: rgba(26, 140, 255, 0.12);
+            --accent-border: rgba(26, 140, 255, 0.4);
+            --accent-bg: rgba(26, 140, 255, 0.15);
+            --accent-text: #1A8CFF;
+
+            /* Charts - Blue palette */
+            --chart-line: #1A8CFF;
+            --chart-gradient-from: rgba(26, 140, 255, 0.4);
+            --chart-gradient-to: rgba(26, 140, 255, 0.0);
+            --chart-funnel-from: rgba(26, 140, 255, 0.2);
+            --chart-funnel-to: rgba(26, 140, 255, 0.02);
+
+            /* Shadow for midnight theme */
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.25);
+        }
+
+        /* Dark theme gradient application */
+        [data-theme="dark"] body {
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+        }
+
+        [data-theme="dark"] .sidebar {
+            background-color: var(--sidebar-bg);
+            border-right-color: rgba(0, 212, 170, 0.15);
+        }
+
+        [data-theme="dark"] .card {
+            background-color: var(--card-bg);
+            backdrop-filter: blur(8px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Midnight theme gradient application */
+        [data-theme="midnight"] body {
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+        }
+
+        [data-theme="midnight"] .sidebar {
+            background-color: var(--sidebar-bg);
+            border-right-color: rgba(26, 140, 255, 0.15);
+        }
+
+        [data-theme="midnight"] .card {
+            background-color: var(--card-bg);
+            backdrop-filter: blur(8px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: 80px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+            transition: width 0.3s ease;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+            overflow: hidden;
+        }
+
+        .sidebar:hover {
+            width: 240px;
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            color: var(--text-on-accent);
+            flex-shrink: 0;
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .nav-items {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 28px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: var(--transition);
+            white-space: nowrap;
+            overflow: hidden;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-link i {
+            min-width: 24px;
+            font-size: 1.2rem;
+            text-align: center;
+            margin-right: 20px;
+        }
+
+        .nav-link span {
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .sidebar:hover .nav-link span {
+            opacity: 1;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            border-left-color: var(--accent-primary);
+        }
+
+        /* Sidebar Toggle Button */
+        .sidebar-toggle {
+            width: 32px;
+            height: 32px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+
+        .sidebar-toggle:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border-color: var(--accent-primary);
+        }
+
+        .sidebar-toggle .icon-unlock {
+            display: block;
+        }
+
+        .sidebar-toggle .icon-lock {
+            display: none;
+        }
+
+        /* Sidebar Locked State */
+        .sidebar.sidebar-locked {
+            width: 240px;
+        }
+
+        .sidebar.sidebar-locked .nav-link span {
+            opacity: 1;
+        }
+
+        .sidebar.sidebar-locked .sidebar-toggle .icon-unlock {
+            display: none;
+        }
+
+        .sidebar.sidebar-locked .sidebar-toggle .icon-lock {
+            display: block;
+        }
+
+        .sidebar.sidebar-locked .sidebar-toggle {
+            background: var(--accent-glow);
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+        }
+
+        /* Main Content Adjustment */
+        .main-content.main-content-expanded {
+            margin-left: 240px;
+        }
+
+        /* --- VIEW CONTAINERS --- */
+        .view-container {
+            display: none;
+        }
+
+        .view-container.active {
+            display: block;
+        }
+
+        /* --- USER TABLE STYLES --- */
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .users-table th {
+            padding: 12px 16px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.85rem;
+            border-bottom: 1px solid var(--border-color);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .users-table td {
+            padding: 16px;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-color-light);
+        }
+
+        .users-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .users-table tr:hover td {
+            background-color: var(--bg-hover);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-on-accent);
+        }
+
+        .user-name {
+            font-weight: 500;
+        }
+
+        .plan-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .plan-free { background: var(--neutral-bg); color: var(--neutral-text); }
+        .plan-pro { background: var(--accent-pro-bg); color: var(--accent-pro); }
+        .plan-enterprise { background: var(--accent-enterprise-bg); color: var(--accent-enterprise); }
+
+        /* --- MESSAGE INBOX STYLES --- */
+        .message-filters {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-family: inherit;
+            transition: var(--transition);
+        }
+
+        .filter-btn:hover {
+            background: var(--bg-hover-elevated);
+            color: var(--text-primary);
+        }
+
+        .filter-btn.active {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+            color: var(--text-on-accent);
+        }
+
+        .filter-btn .count {
+            background: var(--overlay-dark);
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            margin-left: 6px;
+        }
+
+        .filter-btn.active .count {
+            background: var(--overlay-light);
+        }
+
+        .message-list {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color-light);
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .message-item:last-child {
+            border-bottom: none;
+        }
+
+        .message-item:hover {
+            background: var(--bg-hover);
+        }
+
+        .message-item.unread {
+            background: var(--accent-muted);
+            border-left: 3px solid var(--accent-primary);
+        }
+
+        .message-item.unread:hover {
+            background: var(--accent-hover);
+        }
+
+        .message-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-on-accent);
+            flex-shrink: 0;
+        }
+
+        .message-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .message-sender {
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .message-item.unread .message-sender {
+            font-weight: 600;
+        }
+
+        .message-time {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .message-subject {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .message-item.unread .message-subject {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .message-preview {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .message-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .message-tag {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .tag-support { background: var(--accent-info-bg); color: var(--accent-info-light); }
+        .tag-billing { background: var(--accent-warning-bg); color: var(--accent-warning-light); }
+        .tag-feature { background: var(--accent-enterprise-bg); color: var(--accent-enterprise); }
+        .tag-general { background: var(--neutral-bg); color: var(--neutral-text); }
+
+        .unread-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* --- MAIN CONTENT --- */
+        .main-content {
+            margin-left: 80px;
+            flex: 1;
+            padding: 30px;
+            max-width: 1600px;
+        }
+
+        .header {
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background-color: var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+
+        /* --- THEME TOGGLE --- */
+        .theme-toggle {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .theme-toggle:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent-primary);
+            color: var(--text-primary);
+        }
+
+        .theme-toggle svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .theme-toggle .icon-sun {
+            display: none;
+        }
+
+        .theme-toggle .icon-moon {
+            display: block;
+        }
+
+        .theme-toggle .icon-stars {
+            display: none;
+        }
+
+        [data-theme="light"] .theme-toggle .icon-sun {
+            display: block;
+        }
+
+        [data-theme="light"] .theme-toggle .icon-moon {
+            display: none;
+        }
+
+        [data-theme="light"] .theme-toggle .icon-stars {
+            display: none;
+        }
+
+        [data-theme="dark"] .theme-toggle .icon-sun {
+            display: none;
+        }
+
+        [data-theme="dark"] .theme-toggle .icon-moon {
+            display: block;
+        }
+
+        [data-theme="dark"] .theme-toggle .icon-stars {
+            display: none;
+        }
+
+        [data-theme="midnight"] .theme-toggle .icon-sun {
+            display: none;
+        }
+
+        [data-theme="midnight"] .theme-toggle .icon-moon {
+            display: none;
+        }
+
+        [data-theme="midnight"] .theme-toggle .icon-stars {
+            display: block;
+        }
+
+        /* Theme Dropdown */
+        .theme-selector {
+            position: relative;
+        }
+
+        .theme-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 4px;
+            min-width: 140px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+            z-index: 1000;
+        }
+
+        .theme-selector.open .theme-dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .theme-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            transition: background 0.15s ease, color 0.15s ease;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+        }
+
+        .theme-option:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .theme-option.active {
+            background: var(--accent-muted);
+            color: var(--accent-text);
+        }
+
+        .theme-option svg {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        /* --- GRID SYSTEM --- */
+        .grid-container {
+            display: grid;
+            gap: 24px;
+            grid-template-columns: repeat(4, 1fr);
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-card);
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-border);
+        }
+
+        /* --- HERO KPI --- */
+        .kpi-title {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: var(--text-primary);
+        }
+
+        .kpi-trend {
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .trend-up { color: var(--success); }
+        .trend-down { color: var(--danger); }
+
+        /* Loading State */
+        .loading {
+            opacity: 0.5;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 0.8; }
+        }
+
+        /* --- CHARTS & FUNNELS --- */
+        .row-middle {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .toggle-group {
+            background-color: var(--overlay-dark);
+            padding: 4px;
+            border-radius: 8px;
+            display: flex;
+        }
+
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-family: inherit;
+            transition: var(--transition);
+        }
+
+        .toggle-btn.active {
+            background-color: var(--accent-primary);
+            color: var(--text-on-accent);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
+        /* Funnel Styles */
+        .funnel-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            height: 300px;
+            justify-content: center;
+        }
+
+        .funnel-step {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+        }
+
+        .funnel-bar-bg {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, var(--chart-funnel-from), var(--chart-funnel-to));
+            border-radius: 6px;
+            z-index: 0;
+        }
+
+        .funnel-info {
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            justify-content: space-between;
+            padding: 0 10px;
+        }
+
+        .funnel-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .funnel-metrics {
+            text-align: right;
+        }
+
+        .funnel-count {
+            font-weight: 600;
+            display: block;
+        }
+
+        .funnel-rate {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* --- TABLE --- */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            padding: 12px 16px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.85rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 16px;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-color-light);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background-color: var(--bg-hover);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-success { background: var(--accent-success-bg); color: var(--accent-success-light); }
+        .status-warning { background: var(--accent-warning-bg); color: var(--accent-warning-light); }
+        .status-danger { background: var(--accent-danger-bg); color: var(--accent-danger-light); }
+        .status-neutral { background: var(--neutral-bg); color: var(--neutral-text); }
+
+        /* Connection Status */
+        .connection-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 1000;
+        }
+
+        .connection-status.connected {
+            background: var(--accent-success-bg);
+            color: var(--accent-success-light);
+        }
+
+        .connection-status.error {
+            background: var(--accent-danger-bg);
+            color: var(--accent-danger-light);
+        }
+
+        .connection-status .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .grid-container, .row-middle {
+                grid-template-columns: 1fr;
+            }
+            .grid-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 0;
+                padding: 0;
+                overflow: hidden;
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 15px;
+            }
+            .grid-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar" id="sidebar">
+        <div class="logo">S</div>
+        <button class="sidebar-toggle" id="sidebar-toggle" title="Toggle sidebar">
+            <i class="fa-solid fa-thumbtack icon-unlock"></i>
+            <i class="fa-solid fa-thumbtack icon-lock" style="transform: rotate(45deg);"></i>
+        </button>
+        <div class="nav-items">
+            <a href="#" class="nav-link active" data-view="overview">
+                <i class="fa-solid fa-chart-pie"></i>
+                <span>Overview</span>
+            </a>
+            <a href="#" class="nav-link" data-view="users">
+                <i class="fa-solid fa-users"></i>
+                <span>Users</span>
+            </a>
+            <a href="#" class="nav-link" data-view="revenue">
+                <i class="fa-solid fa-credit-card"></i>
+                <span>Revenue</span>
+            </a>
+            <a href="#" class="nav-link" data-view="messages">
+                <i class="fa-solid fa-envelope"></i>
+                <span>Messages</span>
+            </a>
+            <div style="flex-grow: 1;"></div>
+            <a href="#" class="nav-link" data-view="settings">
+                <i class="fa-solid fa-gear"></i>
+                <span>Settings</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- MAIN DASHBOARD -->
+    <main class="main-content">
+
+        <!-- ============================================ -->
+        <!-- OVERVIEW VIEW -->
+        <!-- ============================================ -->
+        <div id="overview-view" class="view-container active">
+            <div class="header">
+                <div>
+                    <h1>Dashboard Overview</h1>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Welcome back, Alex. Here's what's happening today.</p>
+                </div>
+            <div class="user-profile">
+                <div class="theme-selector">
+                    <button class="theme-toggle" title="Select theme">
+                        <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                        <svg class="icon-stars" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                        </svg>
+                    </button>
+                    <div class="theme-dropdown">
+                        <button class="theme-option" data-theme="light">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                            Light
+                        </button>
+                        <button class="theme-option" data-theme="dark">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                            </svg>
+                            Dark
+                        </button>
+                        <button class="theme-option" data-theme="midnight">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                            Midnight
+                        </button>
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 0.9rem; font-weight: 600;">Alex Morgan</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">Admin</div>
+                </div>
+                <div class="avatar">AM</div>
+            </div>
+        </div>
+
+        <!-- TOP KPI ROW -->
+        <div class="grid-container">
+            <div class="card">
+                <div class="kpi-title">Monthly Recurring Revenue</div>
+                <div class="kpi-value loading" id="kpi-mrr">$--,---</div>
+                <div class="kpi-trend" id="kpi-mrr-trend">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    <span>Loading...</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="kpi-title">Active Users</div>
+                <div class="kpi-value loading" id="kpi-users">--,---</div>
+                <div class="kpi-trend" id="kpi-users-trend">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    <span>Loading...</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="kpi-title">New Signups</div>
+                <div class="kpi-value loading" id="kpi-signups">---</div>
+                <div class="kpi-trend" id="kpi-signups-trend">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    <span>Loading...</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="kpi-title">Churn Rate</div>
+                <div class="kpi-value loading" id="kpi-churn">-.--%</div>
+                <div class="kpi-trend" id="kpi-churn-trend">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    <span>Loading...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- MIDDLE ROW: CHART + FUNNEL -->
+        <div class="row-middle">
+            <div class="card">
+                <div class="chart-header">
+                    <h3 style="font-size: 1.1rem; font-weight: 600;">Revenue Trend</h3>
+                    <div class="toggle-group">
+                        <button class="toggle-btn" onclick="updateChart(7)">7D</button>
+                        <button class="toggle-btn active" onclick="updateChart(30)">30D</button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="chart-header">
+                    <h3 style="font-size: 1.1rem; font-weight: 600;">Conversion Funnel</h3>
+                    <i class="fa-solid fa-filter" style="color: var(--text-muted)"></i>
+                </div>
+                <div class="funnel-container" id="funnel-container">
+                    <div style="text-align: center; color: var(--text-muted);">
+                        <i class="fa-solid fa-spinner fa-spin"></i> Loading funnel data...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOTTOM ROW: ACTIVITY LOG -->
+        <div class="card">
+            <div class="chart-header">
+                <h3 style="font-size: 1.1rem; font-weight: 600;">Recent Activity</h3>
+                <button class="toggle-btn" style="background: var(--bg-tertiary);">View All</button>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Event Type</th>
+                            <th>User Details</th>
+                            <th>Plan</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="activity-tbody">
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: var(--text-muted);">
+                                <i class="fa-solid fa-spinner fa-spin"></i> Loading activity...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        </div><!-- END overview-view -->
+
+        <!-- ============================================ -->
+        <!-- USERS VIEW -->
+        <!-- ============================================ -->
+        <div id="users-view" class="view-container">
+            <div class="header">
+                <div>
+                    <h1>Users</h1>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Manage your user base and track engagement.</p>
+                </div>
+                <div class="user-profile">
+                    <div class="theme-selector">
+                        <button class="theme-toggle" title="Select theme">
+                            <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                            <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                            </svg>
+                            <svg class="icon-stars" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                        </button>
+                        <div class="theme-dropdown">
+                            <button class="theme-option" data-theme="light">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                                </svg>
+                                Light
+                            </button>
+                            <button class="theme-option" data-theme="dark">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                                </svg>
+                                Dark
+                            </button>
+                            <button class="theme-option" data-theme="midnight">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                                </svg>
+                                Midnight
+                            </button>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 0.9rem; font-weight: 600;">Alex Morgan</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">Admin</div>
+                    </div>
+                    <div class="avatar">AM</div>
+                </div>
+            </div>
+
+            <!-- User Stats Row -->
+            <div class="grid-container">
+                <div class="card">
+                    <div class="kpi-title">Total Users</div>
+                    <div class="kpi-value">2,847</div>
+                    <div class="kpi-trend trend-up">
+                        <i class="fa-solid fa-arrow-up"></i>
+                        <span>124 this month</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="kpi-title">Active Users</div>
+                    <div class="kpi-value">2,052</div>
+                    <div class="kpi-trend trend-up">
+                        <i class="fa-solid fa-arrow-up"></i>
+                        <span>72.1% of total</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="kpi-title">New This Month</div>
+                    <div class="kpi-value">342</div>
+                    <div class="kpi-trend trend-up">
+                        <i class="fa-solid fa-arrow-trend-up"></i>
+                        <span>18.2% growth</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="kpi-title">Churned Users</div>
+                    <div class="kpi-value">47</div>
+                    <div class="kpi-trend" style="color: var(--success);">
+                        <i class="fa-solid fa-check"></i>
+                        <span>1.8% churn rate</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Table -->
+            <div class="card">
+                <div class="chart-header">
+                    <h3 style="font-size: 1.1rem; font-weight: 600;">All Users</h3>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="toggle-btn" style="background: var(--bg-tertiary);">
+                            <i class="fa-solid fa-filter"></i> Filter
+                        </button>
+                        <button class="toggle-btn" style="background: var(--accent-primary); color: var(--text-on-accent);">
+                            <i class="fa-solid fa-plus"></i> Add User
+                        </button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Email</th>
+                                <th>Status</th>
+                                <th>Plan</th>
+                                <th>Joined</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="user-info">
+                                        <div class="user-avatar">SJ</div>
+                                        <span class="user-name">Sarah Jenkins</span>
+                                    </div>
+                                </td>
+                                <td><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2c5f4d5e4d4402466c4d4f4149024f4341">[email&#160;protected]</a></td>
+                                <td><span class="status-badge status-success">Active</span></td>
+                                <td><span class="plan-badge plan-pro">Pro</span></td>
+                                <td>Jan 15, 2025</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="user-info">
+                                        <div class="user-avatar">MR</div>
+                                        <span class="user-name">Mike Ross</span>
+                                    </div>
+                                </td>
+                                <td><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c5a8ebb7aab6b685b5a0a4b7b6aaabebacaa">[email&#160;protected]</a></td>
+                                <td><span class="status-badge status-success">Active</span></td>
+                                <td><span class="plan-badge plan-enterprise">Enterprise</span></td>
+                                <td>Dec 03, 2024</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="user-info">
+                                        <div class="user-avatar">LC</div>
+                                        <span class="user-name">Lisa Chen</span>
+                                    </div>
+                                </td>
+                                <td><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="523e7c313a373c12212633202627227c313d">[email&#160;protected]</a></td>
+                                <td><span class="status-badge status-warning">Inactive</span></td>
+                                <td><span class="plan-badge plan-free">Free</span></td>
+                                <td>Jan 10, 2025</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="user-info">
+                                        <div class="user-avatar">JW</div>
+                                        <span class="user-name">James Wilson</span>
+                                    </div>
+                                </td>
+                                <td><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2943075e40455a4647695d4c4a41074046">[email&#160;protected]</a></td>
+                                <td><span class="status-badge status-success">Active</span></td>
+                                <td><span class="plan-badge plan-enterprise">Enterprise</span></td>
+                                <td>Nov 22, 2024</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="user-info">
+                                        <div class="user-avatar">AM</div>
+                                        <span class="user-name">Anna Martinez</span>
+                                    </div>
+                                </td>
+                                <td><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d4b5babab5fab994b0b1a7bdb3bafab7bb">[email&#160;protected]</a></td>
+                                <td><span class="status-badge status-success">Active</span></td>
+                                <td><span class="plan-badge plan-pro">Pro</span></td>
+                                <td>Oct 18, 2024</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="user-info">
+                                        <div class="user-avatar">DC</div>
+                                        <span class="user-name">David Chen</span>
+                                    </div>
+                                </td>
+                                <td><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b6d298d5ded3d8f6c5c2d7c4c298c3c6">[email&#160;protected]</a></td>
+                                <td><span class="status-badge status-danger">Churned</span></td>
+                                <td><span class="plan-badge plan-free">Free</span></td>
+                                <td>Sep 05, 2024</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="user-info">
+                                        <div class="user-avatar">EB</div>
+                                        <span class="user-name">Emily Blunt</span>
+                                    </div>
+                                </td>
+                                <td><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="6c09010500152c08091f050b02420f03">[email&#160;protected]</a></td>
+                                <td><span class="status-badge status-success">Active</span></td>
+                                <td><span class="plan-badge plan-pro">Pro</span></td>
+                                <td>Jan 08, 2025</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="user-info">
+                                        <div class="user-avatar">RT</div>
+                                        <span class="user-name">Robert Taylor</span>
+                                    </div>
+                                </td>
+                                <td><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b1c39fc5d0c8dddec3f1d0d6d4dfd2c89fd2dedc">[email&#160;protected]</a></td>
+                                <td><span class="status-badge status-success">Active</span></td>
+                                <td><span class="plan-badge plan-enterprise">Enterprise</span></td>
+                                <td>Aug 14, 2024</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="user-info">
+                                        <div class="user-avatar">JA</div>
+                                        <span class="user-name">Jennifer Adams</span>
+                                    </div>
+                                </td>
+                                <td><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b9d397d8ddd8d4caf9dad6cbc997dad6d4">[email&#160;protected]</a></td>
+                                <td><span class="status-badge status-warning">Inactive</span></td>
+                                <td><span class="plan-badge plan-pro">Pro</span></td>
+                                <td>Jul 29, 2024</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="user-info">
+                                        <div class="user-avatar">TH</div>
+                                        <span class="user-name">Tom Harris</span>
+                                    </div>
+                                </td>
+                                <td><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b3c79ddbd2c1c1dac0f3c0ded2dfdf9dd1dac9">[email&#160;protected]</a></td>
+                                <td><span class="status-badge status-danger">Churned</span></td>
+                                <td><span class="plan-badge plan-free">Free</span></td>
+                                <td>Jun 12, 2024</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div><!-- END users-view -->
+
+        <!-- ============================================ -->
+        <!-- REVENUE VIEW -->
+        <!-- ============================================ -->
+        <div id="revenue-view" class="view-container">
+            <div class="header">
+                <div>
+                    <h1>Revenue</h1>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Track your revenue and financial metrics.</p>
+                </div>
+                <div class="user-profile">
+                    <div class="theme-selector">
+                        <button class="theme-toggle" title="Select theme">
+                            <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                            <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                            </svg>
+                            <svg class="icon-stars" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                        </button>
+                        <div class="theme-dropdown">
+                            <button class="theme-option" data-theme="light">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                                </svg>
+                                Light
+                            </button>
+                            <button class="theme-option" data-theme="dark">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                                </svg>
+                                Dark
+                            </button>
+                            <button class="theme-option" data-theme="midnight">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                                </svg>
+                                Midnight
+                            </button>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 0.9rem; font-weight: 600;">Alex Morgan</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">Admin</div>
+                    </div>
+                    <div class="avatar">AM</div>
+                </div>
+            </div>
+
+            <!-- Revenue Stats Row -->
+            <div class="grid-container">
+                <div class="card">
+                    <div class="kpi-title">Total Revenue (YTD)</div>
+                    <div class="kpi-value">$312,847</div>
+                    <div class="kpi-trend trend-up">
+                        <i class="fa-solid fa-arrow-trend-up"></i>
+                        <span>23.4% vs last year</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="kpi-title">Monthly Recurring Revenue</div>
+                    <div class="kpi-value">$26,012</div>
+                    <div class="kpi-trend trend-up">
+                        <i class="fa-solid fa-arrow-up"></i>
+                        <span>12.5% vs last month</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="kpi-title">Annual Recurring Revenue</div>
+                    <div class="kpi-value">$312,144</div>
+                    <div class="kpi-trend trend-up">
+                        <i class="fa-solid fa-arrow-trend-up"></i>
+                        <span>MRR × 12</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="kpi-title">Avg Revenue Per User</div>
+                    <div class="kpi-value">$12.68</div>
+                    <div class="kpi-trend trend-up">
+                        <i class="fa-solid fa-arrow-up"></i>
+                        <span>4.2% vs last month</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Revenue Chart (larger) -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="chart-header">
+                    <h3 style="font-size: 1.1rem; font-weight: 600;">Revenue Trend</h3>
+                    <div class="toggle-group">
+                        <button class="toggle-btn" onclick="updateRevenueChart(7)">7D</button>
+                        <button class="toggle-btn active" onclick="updateRevenueChart(30)">30D</button>
+                        <button class="toggle-btn" onclick="updateRevenueChart(90)">90D</button>
+                    </div>
+                </div>
+                <div class="chart-container" style="height: 350px;">
+                    <canvas id="revenueChartLarge"></canvas>
+                </div>
+            </div>
+
+            <!-- Revenue Breakdown & Transactions Row -->
+            <div class="row-middle">
+                <!-- Revenue Breakdown by Plan -->
+                <div class="card">
+                    <div class="chart-header">
+                        <h3 style="font-size: 1.1rem; font-weight: 600;">Revenue by Plan</h3>
+                        <i class="fa-solid fa-chart-pie" style="color: var(--text-muted)"></i>
+                    </div>
+                    <div class="table-container">
+                        <table class="users-table">
+                            <thead>
+                                <tr>
+                                    <th>Plan</th>
+                                    <th>Subscribers</th>
+                                    <th>Monthly Revenue</th>
+                                    <th>% of MRR</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <span class="plan-badge plan-enterprise">Enterprise</span>
+                                        <span style="color: var(--text-muted); font-size: 0.8rem; margin-left: 8px;">$99/mo</span>
+                                    </td>
+                                    <td>142</td>
+                                    <td style="font-weight: 600; color: var(--success);">$14,058</td>
+                                    <td>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <div style="width: 60px; height: 6px; background: var(--border-color); border-radius: 3px; overflow: hidden;">
+                                                <div style="width: 54%; height: 100%; background: var(--accent-secondary);"></div>
+                                            </div>
+                                            <span>54.0%</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <span class="plan-badge plan-pro">Pro</span>
+                                        <span style="color: var(--text-muted); font-size: 0.8rem; margin-left: 8px;">$29/mo</span>
+                                    </td>
+                                    <td>387</td>
+                                    <td style="font-weight: 600; color: var(--success);">$11,223</td>
+                                    <td>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <div style="width: 60px; height: 6px; background: var(--border-color); border-radius: 3px; overflow: hidden;">
+                                                <div style="width: 43%; height: 100%; background: var(--accent-primary);"></div>
+                                            </div>
+                                            <span>43.1%</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <span class="plan-badge plan-free">Free</span>
+                                        <span style="color: var(--text-muted); font-size: 0.8rem; margin-left: 8px;">$0/mo</span>
+                                    </td>
+                                    <td>1,523</td>
+                                    <td style="font-weight: 600; color: var(--text-muted);">$0</td>
+                                    <td>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <div style="width: 60px; height: 6px; background: var(--border-color); border-radius: 3px; overflow: hidden;">
+                                                <div style="width: 0%; height: 100%; background: var(--text-muted);"></div>
+                                            </div>
+                                            <span>0%</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr style="background: var(--accent-muted);">
+                                    <td style="font-weight: 600;">Total</td>
+                                    <td style="font-weight: 600;">2,052</td>
+                                    <td style="font-weight: 700; color: var(--accent-primary);">$25,281</td>
+                                    <td style="font-weight: 600;">100%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Recent Transactions -->
+                <div class="card">
+                    <div class="chart-header">
+                        <h3 style="font-size: 1.1rem; font-weight: 600;">Recent Transactions</h3>
+                        <button class="toggle-btn" style="background: var(--bg-tertiary);">View All</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="users-table" style="font-size: 0.85rem;">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Customer</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Today</td>
+                                    <td>Sarah Jenkins</td>
+                                    <td style="font-weight: 600;">$29.00</td>
+                                    <td><span class="status-badge status-success">Completed</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Today</td>
+                                    <td>Mike Ross</td>
+                                    <td style="font-weight: 600;">$99.00</td>
+                                    <td><span class="status-badge status-success">Completed</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Yesterday</td>
+                                    <td>TechFlow Inc</td>
+                                    <td style="font-weight: 600;">$99.00</td>
+                                    <td><span class="status-badge status-success">Completed</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Yesterday</td>
+                                    <td>Anna Martinez</td>
+                                    <td style="font-weight: 600;">$29.00</td>
+                                    <td><span class="status-badge status-success">Completed</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Jan 16</td>
+                                    <td>James Wilson</td>
+                                    <td style="font-weight: 600;">$99.00</td>
+                                    <td><span class="status-badge status-warning">Pending</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Jan 15</td>
+                                    <td>Robert Taylor</td>
+                                    <td style="font-weight: 600;">$99.00</td>
+                                    <td><span class="status-badge status-success">Completed</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Jan 15</td>
+                                    <td>Emily Blunt</td>
+                                    <td style="font-weight: 600;">$29.00</td>
+                                    <td><span class="status-badge status-success">Completed</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Jan 14</td>
+                                    <td>Chris Evans</td>
+                                    <td style="font-weight: 600;">$29.00</td>
+                                    <td><span class="status-badge status-danger">Failed</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div><!-- END revenue-view -->
+
+        <!-- ============================================ -->
+        <!-- PLACEHOLDER VIEWS -->
+        <!-- ============================================ -->
+
+        <!-- ============================================ -->
+        <!-- MESSAGES VIEW -->
+        <!-- ============================================ -->
+        <div id="messages-view" class="view-container">
+            <div class="header">
+                <div>
+                    <h1>Messages</h1>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Customer communications and notifications.</p>
+                </div>
+                <div class="user-profile">
+                    <div class="theme-selector">
+                        <button class="theme-toggle" title="Select theme">
+                            <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                            <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                            </svg>
+                            <svg class="icon-stars" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                        </button>
+                        <div class="theme-dropdown">
+                            <button class="theme-option" data-theme="light">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                                </svg>
+                                Light
+                            </button>
+                            <button class="theme-option" data-theme="dark">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                                </svg>
+                                Dark
+                            </button>
+                            <button class="theme-option" data-theme="midnight">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                                </svg>
+                                Midnight
+                            </button>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 0.9rem; font-weight: 600;">Alex Morgan</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">Admin</div>
+                    </div>
+                    <div class="avatar">AM</div>
+                </div>
+            </div>
+
+            <!-- Messages Stats Row -->
+            <div class="grid-container">
+                <div class="card">
+                    <div class="kpi-title">Total Messages</div>
+                    <div class="kpi-value">1,247</div>
+                    <div class="kpi-trend trend-up">
+                        <i class="fa-solid fa-arrow-up"></i>
+                        <span>89 this week</span>
+                    </div>
+                </div>
+
+                <div class="card" style="border-color: var(--accent-border);">
+                    <div class="kpi-title">Unread Messages</div>
+                    <div class="kpi-value" style="color: var(--accent-primary);">23</div>
+                    <div class="kpi-trend" style="color: var(--warning);">
+                        <i class="fa-solid fa-exclamation-circle"></i>
+                        <span>Needs attention</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="kpi-title">Responded Today</div>
+                    <div class="kpi-value">18</div>
+                    <div class="kpi-trend trend-up">
+                        <i class="fa-solid fa-check"></i>
+                        <span>78% response rate</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="kpi-title">Avg Response Time</div>
+                    <div class="kpi-value">2.4h</div>
+                    <div class="kpi-trend trend-up" style="color: var(--success);">
+                        <i class="fa-solid fa-arrow-down"></i>
+                        <span>Improved 15%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Message Inbox -->
+            <div class="card">
+                <div class="chart-header">
+                    <h3 style="font-size: 1.1rem; font-weight: 600;">Inbox</h3>
+                    <button class="toggle-btn" style="background: var(--accent-primary); color: var(--text-on-accent);">
+                        <i class="fa-solid fa-pen-to-square"></i> Compose
+                    </button>
+                </div>
+
+                <!-- Filter Tabs -->
+                <div class="message-filters">
+                    <button class="filter-btn active">All<span class="count">1,247</span></button>
+                    <button class="filter-btn">Unread<span class="count">23</span></button>
+                    <button class="filter-btn">Support<span class="count">412</span></button>
+                    <button class="filter-btn">Billing<span class="count">156</span></button>
+                    <button class="filter-btn">Feature Requests<span class="count">89</span></button>
+                </div>
+
+                <!-- Message List -->
+                <div class="message-list">
+                    <!-- Unread Message 1 -->
+                    <div class="message-item unread">
+                        <div class="message-avatar">SJ</div>
+                        <div class="message-content">
+                            <div class="message-header">
+                                <span class="message-sender">Sarah Jenkins</span>
+                                <span class="message-time">10 min ago</span>
+                            </div>
+                            <div class="message-subject">Unable to access dashboard after password reset</div>
+                            <div class="message-preview">Hi, I just reset my password but now I can't log into my account. It keeps saying invalid credentials even though...</div>
+                            <div class="message-meta">
+                                <span class="message-tag tag-support">Support</span>
+                                <span class="unread-dot"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Unread Message 2 -->
+                    <div class="message-item unread">
+                        <div class="message-avatar">TF</div>
+                        <div class="message-content">
+                            <div class="message-header">
+                                <span class="message-sender">TechFlow Inc</span>
+                                <span class="message-time">45 min ago</span>
+                            </div>
+                            <div class="message-subject">Enterprise plan billing question</div>
+                            <div class="message-preview">We noticed a discrepancy in our latest invoice. The amount charged was $1,188 but our contract states...</div>
+                            <div class="message-meta">
+                                <span class="message-tag tag-billing">Billing</span>
+                                <span class="unread-dot"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Unread Message 3 -->
+                    <div class="message-item unread">
+                        <div class="message-avatar">MR</div>
+                        <div class="message-content">
+                            <div class="message-header">
+                                <span class="message-sender">Mike Ross</span>
+                                <span class="message-time">2 hours ago</span>
+                            </div>
+                            <div class="message-subject">Feature request: Dark mode for mobile app</div>
+                            <div class="message-preview">Love the web dashboard's dark theme! Any plans to add dark mode to the mobile app? My team uses it...</div>
+                            <div class="message-meta">
+                                <span class="message-tag tag-feature">Feature</span>
+                                <span class="unread-dot"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Read Message 4 -->
+                    <div class="message-item">
+                        <div class="message-avatar">LC</div>
+                        <div class="message-content">
+                            <div class="message-header">
+                                <span class="message-sender">Lisa Chen</span>
+                                <span class="message-time">4 hours ago</span>
+                            </div>
+                            <div class="message-subject">API rate limits for Pro plan</div>
+                            <div class="message-preview">Hi team, I'm considering upgrading to Pro but wanted to confirm the API rate limits first. The docs mention...</div>
+                            <div class="message-meta">
+                                <span class="message-tag tag-support">Support</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Read Message 5 -->
+                    <div class="message-item">
+                        <div class="message-avatar">JW</div>
+                        <div class="message-content">
+                            <div class="message-header">
+                                <span class="message-sender">James Wilson</span>
+                                <span class="message-time">Yesterday</span>
+                            </div>
+                            <div class="message-subject">Re: Team onboarding complete</div>
+                            <div class="message-preview">Thanks for the help getting our team set up! Everyone is now onboarded and we're ready to go live...</div>
+                            <div class="message-meta">
+                                <span class="message-tag tag-general">General</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Read Message 6 -->
+                    <div class="message-item">
+                        <div class="message-avatar">AM</div>
+                        <div class="message-content">
+                            <div class="message-header">
+                                <span class="message-sender">Anna Martinez</span>
+                                <span class="message-time">Yesterday</span>
+                            </div>
+                            <div class="message-subject">Request for annual billing option</div>
+                            <div class="message-preview">Is there an option to switch from monthly to annual billing? We'd like to pay upfront if there's a discount...</div>
+                            <div class="message-meta">
+                                <span class="message-tag tag-billing">Billing</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Read Message 7 -->
+                    <div class="message-item">
+                        <div class="message-avatar">DC</div>
+                        <div class="message-content">
+                            <div class="message-header">
+                                <span class="message-sender">David Chen</span>
+                                <span class="message-time">2 days ago</span>
+                            </div>
+                            <div class="message-subject">Webhook integration not triggering</div>
+                            <div class="message-preview">I've set up webhooks for new user signups but they're not firing. I've checked the endpoint and it's working...</div>
+                            <div class="message-meta">
+                                <span class="message-tag tag-support">Support</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Read Message 8 -->
+                    <div class="message-item">
+                        <div class="message-avatar">EB</div>
+                        <div class="message-content">
+                            <div class="message-header">
+                                <span class="message-sender">Emily Blunt</span>
+                                <span class="message-time">2 days ago</span>
+                            </div>
+                            <div class="message-subject">Feature request: Export to CSV</div>
+                            <div class="message-preview">Would love to be able to export my analytics data to CSV format for our quarterly reports. Is this on the...</div>
+                            <div class="message-meta">
+                                <span class="message-tag tag-feature">Feature</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Read Message 9 -->
+                    <div class="message-item">
+                        <div class="message-avatar">RT</div>
+                        <div class="message-content">
+                            <div class="message-header">
+                                <span class="message-sender">Robert Taylor</span>
+                                <span class="message-time">3 days ago</span>
+                            </div>
+                            <div class="message-subject">Re: Enterprise demo scheduled</div>
+                            <div class="message-preview">Perfect, we're confirmed for Thursday at 2pm EST. Looking forward to seeing the enterprise features in action...</div>
+                            <div class="message-meta">
+                                <span class="message-tag tag-general">General</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Read Message 10 -->
+                    <div class="message-item">
+                        <div class="message-avatar">JA</div>
+                        <div class="message-content">
+                            <div class="message-header">
+                                <span class="message-sender">Jennifer Adams</span>
+                                <span class="message-time">3 days ago</span>
+                            </div>
+                            <div class="message-subject">Cancellation request - need help</div>
+                            <div class="message-preview">Before I cancel, I wanted to ask if there's a way to downgrade to a lower tier instead. Our budget has changed...</div>
+                            <div class="message-meta">
+                                <span class="message-tag tag-billing">Billing</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Load More -->
+                <div style="text-align: center; padding: 20px;">
+                    <button class="toggle-btn" style="background: var(--bg-tertiary);">
+                        Load More Messages
+                    </button>
+                </div>
+            </div>
+        </div><!-- END messages-view -->
+
+        <div id="settings-view" class="view-container">
+            <div class="header">
+                <div>
+                    <h1>Settings</h1>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Manage your account and preferences</p>
+                </div>
+            </div>
+
+            <div style="display: grid; gap: 24px;">
+                <!-- SECTION A - Profile Settings -->
+                <div class="card">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-card);">
+                        <i class="fa-solid fa-user" style="color: var(--accent-primary);"></i>
+                        <h3 style="font-size: 1rem; font-weight: 600;">Profile Settings</h3>
+                    </div>
+                    <div style="display: flex; align-items: flex-start; gap: 32px; flex-wrap: wrap;">
+                        <!-- Profile Photo -->
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
+                            <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 600; color: var(--text-on-accent);">AM</div>
+                            <button style="background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-family: inherit; transition: var(--transition);" onmouseover="this.style.borderColor='var(--accent-primary)'; this.style.color='var(--text-primary)';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.color='var(--text-secondary)';">Change Photo</button>
+                        </div>
+                        <!-- Profile Fields -->
+                        <div style="flex: 1; min-width: 280px; display: grid; gap: 16px;">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                                <div>
+                                    <label style="display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Name</label>
+                                    <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 14px; color: var(--text-primary); font-size: 0.9rem;">Alex Morgan</div>
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Email</label>
+                                    <div style="background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 14px; color: var(--text-primary); font-size: 0.9rem;"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e7868b829fc98a8895808689a784888a9786899ec984888a">[email&#160;protected]</a></div>
+                                </div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                                <div>
+                                    <label style="display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Role</label>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span style="display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; background: var(--accent-enterprise-bg); color: var(--accent-enterprise);">Admin</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="margin-top: 8px;">
+                                <button style="background: var(--accent-primary); border: none; color: var(--text-on-accent); padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 500; font-family: inherit; transition: var(--transition);" onmouseover="this.style.background='var(--accent-secondary)';" onmouseout="this.style.background='var(--accent-primary)';">
+                                    <i class="fa-solid fa-pen" style="margin-right: 8px;"></i>Edit Profile
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION B - Notification Preferences -->
+                <div class="card">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-card);">
+                        <i class="fa-solid fa-bell" style="color: var(--accent-primary);"></i>
+                        <h3 style="font-size: 1rem; font-weight: 600;">Notification Preferences</h3>
+                    </div>
+                    <div style="display: grid; gap: 16px;">
+                        <!-- Email Notifications Toggle -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--bg-hover); border-radius: 8px;">
+                            <div>
+                                <div style="font-size: 0.9rem; font-weight: 500; color: var(--text-primary);">Email Notifications</div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">Receive email alerts for important updates</div>
+                            </div>
+                            <label class="settings-toggle" style="position: relative; display: inline-block; width: 48px; height: 26px; cursor: pointer;">
+                                <input type="checkbox" data-setting="setting_email_notifications" data-label="Email notifications" style="opacity: 0; width: 0; height: 0;">
+                                <span class="settings-slider" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: var(--border-color); border-radius: 26px; transition: 0.3s;"></span>
+                                <span class="settings-knob" style="position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: 0.3s; transform: translateX(0);"></span>
+                            </label>
+                        </div>
+                        <!-- Push Notifications Toggle -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--bg-hover); border-radius: 8px;">
+                            <div>
+                                <div style="font-size: 0.9rem; font-weight: 500; color: var(--text-primary);">Push Notifications</div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">Receive push notifications on your devices</div>
+                            </div>
+                            <label class="settings-toggle" style="position: relative; display: inline-block; width: 48px; height: 26px; cursor: pointer;">
+                                <input type="checkbox" data-setting="setting_push_notifications" data-label="Push notifications" style="opacity: 0; width: 0; height: 0;">
+                                <span class="settings-slider" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: var(--border-color); border-radius: 26px; transition: 0.3s;"></span>
+                                <span class="settings-knob" style="position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: 0.3s; transform: translateX(0);"></span>
+                            </label>
+                        </div>
+                        <!-- Weekly Digest Toggle -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--bg-hover); border-radius: 8px;">
+                            <div>
+                                <div style="font-size: 0.9rem; font-weight: 500; color: var(--text-primary);">Weekly Digest</div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">Get a weekly summary of your analytics</div>
+                            </div>
+                            <label class="settings-toggle" style="position: relative; display: inline-block; width: 48px; height: 26px; cursor: pointer;">
+                                <input type="checkbox" data-setting="setting_weekly_digest" data-label="Weekly digest" style="opacity: 0; width: 0; height: 0;">
+                                <span class="settings-slider" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: var(--border-color); border-radius: 26px; transition: 0.3s;"></span>
+                                <span class="settings-knob" style="position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: 0.3s; transform: translateX(0);"></span>
+                            </label>
+                        </div>
+                        <!-- Marketing Emails Toggle -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--bg-hover); border-radius: 8px;">
+                            <div>
+                                <div style="font-size: 0.9rem; font-weight: 500; color: var(--text-primary);">Marketing Emails</div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">Receive product updates and promotions</div>
+                            </div>
+                            <label class="settings-toggle" style="position: relative; display: inline-block; width: 48px; height: 26px; cursor: pointer;">
+                                <input type="checkbox" data-setting="setting_marketing_emails" data-label="Marketing emails" style="opacity: 0; width: 0; height: 0;">
+                                <span class="settings-slider" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: var(--border-color); border-radius: 26px; transition: 0.3s;"></span>
+                                <span class="settings-knob" style="position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: 0.3s; transform: translateX(0);"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION C - Security -->
+                <div class="card">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-card);">
+                        <i class="fa-solid fa-shield-halved" style="color: var(--accent-primary);"></i>
+                        <h3 style="font-size: 1rem; font-weight: 600;">Security</h3>
+                    </div>
+                    <div style="display: grid; gap: 16px;">
+                        <!-- Password Row -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--bg-hover); border-radius: 8px; flex-wrap: wrap; gap: 12px;">
+                            <div>
+                                <div style="font-size: 0.9rem; font-weight: 500; color: var(--text-primary);">Password</div>
+                                <div style="font-size: 0.9rem; color: var(--text-muted); margin-top: 4px; letter-spacing: 2px;">••••••••••</div>
+                            </div>
+                            <button style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-secondary); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-family: inherit; transition: var(--transition);" onmouseover="this.style.borderColor='var(--accent-primary)'; this.style.color='var(--text-primary)';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.color='var(--text-secondary)';">Change Password</button>
+                        </div>
+                        <!-- Two-Factor Authentication Row -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--bg-hover); border-radius: 8px; flex-wrap: wrap; gap: 12px;">
+                            <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                                <div>
+                                    <div style="font-size: 0.9rem; font-weight: 500; color: var(--text-primary);">Two-Factor Authentication</div>
+                                    <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                                        <span id="twofa-status-badge" style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 500; background: var(--neutral-bg); color: var(--text-muted);">
+                                            <i class="fa-solid fa-xmark" style="font-size: 0.65rem;"></i> Disabled
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <label class="settings-toggle" style="position: relative; display: inline-block; width: 48px; height: 26px; cursor: pointer;">
+                                <input type="checkbox" data-setting="setting_two_factor_auth" data-label="Two-factor authentication" style="opacity: 0; width: 0; height: 0;">
+                                <span class="settings-slider" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: var(--border-color); border-radius: 26px; transition: 0.3s;"></span>
+                                <span class="settings-knob" style="position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: 0.3s; transform: translateX(0);"></span>
+                            </label>
+                        </div>
+                        <!-- Active Sessions Row -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--bg-hover); border-radius: 8px; flex-wrap: wrap; gap: 12px;">
+                            <div>
+                                <div style="font-size: 0.9rem; font-weight: 500; color: var(--text-primary);">Active Sessions</div>
+                                <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                                    <i class="fa-solid fa-laptop" style="color: var(--text-muted); font-size: 0.8rem;"></i>
+                                    <span style="font-size: 0.85rem; color: var(--text-secondary);">3 devices</span>
+                                </div>
+                            </div>
+                            <a href="#" style="color: var(--accent-primary); font-size: 0.85rem; text-decoration: none; transition: var(--transition);" onmouseover="this.style.color='var(--accent-secondary)';" onmouseout="this.style.color='var(--accent-primary)';">Manage Sessions <i class="fa-solid fa-arrow-right" style="font-size: 0.75rem; margin-left: 4px;"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION D - Billing -->
+                <div class="card">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-card);">
+                        <i class="fa-solid fa-credit-card" style="color: var(--accent-primary);"></i>
+                        <h3 style="font-size: 1rem; font-weight: 600;">Billing</h3>
+                    </div>
+                    <div style="display: grid; gap: 16px;">
+                        <!-- Current Plan Row -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: linear-gradient(135deg, var(--accent-muted), var(--accent-enterprise-bg)); border: 1px solid var(--accent-glow); border-radius: 8px; flex-wrap: wrap; gap: 12px;">
+                            <div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Current Plan</div>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <span style="font-size: 1.1rem; font-weight: 600; color: var(--text-primary);">Pro Plan</span>
+                                    <span style="display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; background: var(--accent-bg); color: var(--accent-text);">ACTIVE</span>
+                                </div>
+                                <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">$49/month • Renews on Feb 15, 2026</div>
+                            </div>
+                            <button style="background: var(--accent-primary); border: none; color: var(--text-on-accent); padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 500; font-family: inherit; transition: var(--transition);" onmouseover="this.style.background='var(--accent-secondary)';" onmouseout="this.style.background='var(--accent-primary)';">Upgrade Plan</button>
+                        </div>
+                        <!-- Payment Method Row -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--bg-hover); border-radius: 8px; flex-wrap: wrap; gap: 12px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 40px; height: 28px; background: linear-gradient(135deg, #1a1f71, #00d4ff); border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fa-brands fa-cc-visa" style="color: var(--text-on-accent); font-size: 1rem;"></i>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.9rem; font-weight: 500; color: var(--text-primary);">Visa ending in 4242</div>
+                                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">Expires 12/2027</div>
+                                </div>
+                            </div>
+                            <button style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-secondary); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-family: inherit; transition: var(--transition);" onmouseover="this.style.borderColor='var(--accent-primary)'; this.style.color='var(--text-primary)';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.color='var(--text-secondary)';">Update</button>
+                        </div>
+                        <!-- Billing History Row -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--bg-hover); border-radius: 8px; flex-wrap: wrap; gap: 12px;">
+                            <div>
+                                <div style="font-size: 0.9rem; font-weight: 500; color: var(--text-primary);">Billing History</div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">View past invoices and receipts</div>
+                            </div>
+                            <a href="#" style="color: var(--accent-primary); font-size: 0.85rem; text-decoration: none; transition: var(--transition);" onmouseover="this.style.color='var(--accent-secondary)';" onmouseout="this.style.color='var(--accent-primary)';">View History <i class="fa-solid fa-arrow-right" style="font-size: 0.75rem; margin-left: 4px;"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Connection Status Indicator -->
+    <div class="connection-status" id="connection-status">
+        <span class="dot"></span>
+        <span>Connecting...</span>
+    </div>
+
+    <script>
+        // ============================================
+        // SUPABASE CONFIGURATION
+        // ============================================
+        const SUPABASE_URL = 'https://sidlndqxvaibsoffrrju.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpZGxuZHF4dmFpYnNvZmZycmp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3NTAwNjAsImV4cCI6MjA4NDMyNjA2MH0.kgxXnEex8OdarjE7l1-7kzFfSzshEhfthnKfIQv3ctI';
+
+        // Initialize Supabase client
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // ============================================
+        // THEME COLORS (reads from CSS variables)
+        // ============================================
+        function getThemeColors() {
+            const root = getComputedStyle(document.documentElement);
+            return {
+                bgPrimary: root.getPropertyValue('--bg-primary').trim(),
+                bgSecondary: root.getPropertyValue('--bg-secondary').trim() || root.getPropertyValue('--card-bg').trim(),
+                textPrimary: root.getPropertyValue('--text-primary').trim(),
+                textMuted: root.getPropertyValue('--text-muted').trim(),
+                borderColor: root.getPropertyValue('--border-color').trim(),
+                accentPrimary: root.getPropertyValue('--accent-primary').trim(),
+                chartGradientFrom: root.getPropertyValue('--chart-gradient-from').trim(),
+                chartGradientTo: root.getPropertyValue('--chart-gradient-to').trim(),
+                textOnAccent: root.getPropertyValue('--text-on-accent').trim()
+            };
+        }
+
+        // ============================================
+        // CHART SETUP
+        // ============================================
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+        let revenueChart;
+        let metricsData = []; // Store fetched metrics data
+
+        // Create gradient using theme colors
+        const themeColors = getThemeColors();
+        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, themeColors.chartGradientFrom || 'rgba(99, 102, 241, 0.5)');
+        gradient.addColorStop(1, themeColors.chartGradientTo || 'rgba(99, 102, 241, 0.0)');
+
+        // ============================================
+        // HELPER FUNCTIONS
+        // ============================================
+        function formatCurrency(value) {
+            return '$' + Number(value).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        }
+
+        function formatNumber(value) {
+            return Number(value).toLocaleString('en-US');
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+            if (diffDays === 0) {
+                return 'Today, ' + date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+            } else if (diffDays === 1) {
+                return 'Yesterday, ' + date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+            } else {
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ', ' +
+                       date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+            }
+        }
+
+        function calculateTrend(current, previous) {
+            if (!previous || previous === 0) return { value: 0, direction: 'neutral' };
+            const change = ((current - previous) / previous) * 100;
+            return {
+                value: Math.abs(change).toFixed(1),
+                direction: change >= 0 ? 'up' : 'down'
+            };
+        }
+
+        function updateConnectionStatus(connected, message) {
+            const statusEl = document.getElementById('connection-status');
+            statusEl.className = 'connection-status ' + (connected ? 'connected' : 'error');
+            statusEl.innerHTML = `<span class="dot"></span><span>${message}</span>`;
+        }
+
+        // ============================================
+        // EVENT TYPE ICONS & STATUS BADGES
+        // ============================================
+        const eventIcons = {
+            'subscription': { icon: 'fa-user-plus', color: 'var(--accent-secondary)', label: 'New Subscription' },
+            'payment': { icon: 'fa-file-invoice-dollar', color: 'var(--text-muted)', label: 'Payment Processed' },
+            'cancellation': { icon: 'fa-arrow-right-from-bracket', color: 'var(--danger)', label: 'Cancellation' },
+            'signup': { icon: 'fa-user', color: 'var(--accent-primary)', label: 'New Signup' },
+            'upgrade': { icon: 'fa-arrow-up', color: 'var(--success)', label: 'Plan Upgrade' },
+            'usage_alert': { icon: 'fa-bolt', color: 'var(--warning)', label: 'Usage Alert' }
+        };
+
+        const statusBadges = {
+            'completed': { class: 'status-success', label: 'Completed' },
+            'paid': { class: 'status-success', label: 'Paid' },
+            'pending': { class: 'status-neutral', label: 'Pending' },
+            'churned': { class: 'status-danger', label: 'Churned' },
+            'limit_reached': { class: 'status-warning', label: 'Limit Reached' }
+        };
+
+        // ============================================
+        // DATA FETCHING FUNCTIONS
+        // ============================================
+        async function fetchDailyMetrics() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('v_daily_metrics')
+                    .select('*')
+                    .order('date', { ascending: true });
+
+                if (error) throw error;
+                return data || [];
+            } catch (err) {
+                console.error('Error fetching daily metrics:', err);
+                return [];
+            }
+        }
+
+        async function fetchActivityLog() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('v_activity_log')
+                    .select('*');
+
+                if (error) throw error;
+                return data || [];
+            } catch (err) {
+                console.error('Error fetching activity log:', err);
+                return [];
+            }
+        }
+
+        async function fetchFunnelData() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('v_funnel_analysis')
+                    .select('*')
+                    .order('stage_order', { ascending: true });
+
+                if (error) throw error;
+                return data || [];
+            } catch (err) {
+                console.error('Error fetching funnel data:', err);
+                return [];
+            }
+        }
+
+        // ============================================
+        // UI UPDATE FUNCTIONS
+        // ============================================
+        function updateKPIs(data) {
+            if (!data || data.length === 0) return;
+
+            // Get latest and previous day for comparison
+            const latest = data[data.length - 1];
+            const previous = data.length > 1 ? data[data.length - 2] : null;
+            const monthAgo = data.length >= 30 ? data[0] : previous;
+
+            // MRR
+            document.getElementById('kpi-mrr').textContent = formatCurrency(latest.mrr);
+            document.getElementById('kpi-mrr').classList.remove('loading');
+            const mrrTrend = calculateTrend(latest.mrr, monthAgo?.mrr);
+            document.getElementById('kpi-mrr-trend').className = 'kpi-trend trend-' + mrrTrend.direction;
+            document.getElementById('kpi-mrr-trend').innerHTML = `
+                <i class="fa-solid fa-arrow-trend-${mrrTrend.direction}"></i>
+                <span>${mrrTrend.value}% vs last month</span>
+            `;
+
+            // Active Users
+            document.getElementById('kpi-users').textContent = formatNumber(latest.active_users);
+            document.getElementById('kpi-users').classList.remove('loading');
+            const usersTrend = calculateTrend(latest.active_users, monthAgo?.active_users);
+            document.getElementById('kpi-users-trend').className = 'kpi-trend trend-' + usersTrend.direction;
+            document.getElementById('kpi-users-trend').innerHTML = `
+                <i class="fa-solid fa-arrow-${usersTrend.direction}"></i>
+                <span>${usersTrend.value}% vs last month</span>
+            `;
+
+            // New Signups (sum of last 30 days or available data)
+            const totalSignups = data.reduce((sum, d) => sum + d.new_signups, 0);
+            document.getElementById('kpi-signups').textContent = formatNumber(totalSignups);
+            document.getElementById('kpi-signups').classList.remove('loading');
+            const signupsTrend = calculateTrend(latest.new_signups, previous?.new_signups);
+            document.getElementById('kpi-signups-trend').className = 'kpi-trend trend-' + signupsTrend.direction;
+            document.getElementById('kpi-signups-trend').innerHTML = `
+                <i class="fa-solid fa-arrow-${signupsTrend.direction}"></i>
+                <span>${signupsTrend.value}% vs yesterday</span>
+            `;
+
+            // Churn Rate
+            document.getElementById('kpi-churn').textContent = latest.churn_rate + '%';
+            document.getElementById('kpi-churn').classList.remove('loading');
+            const isHealthy = latest.churn_rate <= 2.0;
+            document.getElementById('kpi-churn-trend').className = 'kpi-trend';
+            document.getElementById('kpi-churn-trend').style.color = isHealthy ? 'var(--success)' : 'var(--danger)';
+            document.getElementById('kpi-churn-trend').innerHTML = `
+                <i class="fa-solid fa-${isHealthy ? 'check' : 'exclamation-triangle'}"></i>
+                <span>${isHealthy ? 'Healthy Level' : 'Needs Attention'}</span>
+            `;
+        }
+
+        function updateActivityTable(data) {
+            const tbody = document.getElementById('activity-tbody');
+
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: var(--text-muted);">
+                            No activity data available
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = data.map(activity => {
+                const eventConfig = eventIcons[activity.event_type] || { icon: 'fa-circle', color: 'var(--text-muted)', label: activity.event_type };
+                const statusConfig = statusBadges[activity.status] || { class: 'status-neutral', label: activity.status };
+
+                return `
+                    <tr>
+                        <td>${formatTimestamp(activity.timestamp)}</td>
+                        <td>
+                            <i class="fa-solid ${eventConfig.icon}" style="margin-right:8px; color: ${eventConfig.color}"></i>
+                            ${eventConfig.label}
+                        </td>
+                        <td>${activity.user_name} (${activity.user_email})</td>
+                        <td>${activity.plan}</td>
+                        <td><span class="status-badge ${statusConfig.class}">${statusConfig.label}</span></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function updateFunnel(data) {
+            const container = document.getElementById('funnel-container');
+
+            if (!data || data.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; color: var(--text-muted);">
+                        No funnel data available
+                    </div>
+                `;
+                return;
+            }
+
+            const maxCount = Math.max(...data.map(d => d.count));
+
+            container.innerHTML = data.map((stage, index) => {
+                const widthPercent = (stage.count / maxCount) * 100;
+                const rateText = index === 0 ? `${stage.percentage_of_total}%` :
+                                 `${stage.conversion_from_previous || 0}% of prev`;
+
+                return `
+                    <div class="funnel-step">
+                        <div class="funnel-bar-bg" style="width: ${widthPercent}%;"></div>
+                        <div class="funnel-info">
+                            <span class="funnel-label">${stage.stage_name}</span>
+                            <div class="funnel-metrics">
+                                <span class="funnel-count">${formatNumber(stage.count)}</span>
+                                <span class="funnel-rate">${rateText}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ============================================
+        // CHART FUNCTIONS
+        // ============================================
+        function initChart(days) {
+            if (!metricsData || metricsData.length === 0) return;
+
+            // Get last N days of data
+            const chartData = metricsData.slice(-days);
+
+            const labels = chartData.map(d => formatDate(d.date));
+            const values = chartData.map(d => parseFloat(d.mrr));
+
+            // Get current theme colors for chart
+            const colors = getThemeColors();
+
+            const config = {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Revenue ($)',
+                        data: values,
+                        borderColor: colors.accentPrimary,
+                        backgroundColor: gradient,
+                        borderWidth: 2,
+                        pointBackgroundColor: colors.bgSecondary,
+                        pointBorderColor: colors.accentPrimary,
+                        pointHoverBackgroundColor: colors.accentPrimary,
+                        pointHoverBorderColor: colors.textOnAccent,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: colors.bgPrimary,
+                            titleColor: colors.textPrimary,
+                            bodyColor: colors.textPrimary,
+                            borderColor: colors.borderColor,
+                            borderWidth: 1,
+                            padding: 10,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return '$ ' + context.parsed.y.toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: colors.textMuted, maxTicksLimit: 10 }
+                        },
+                        y: {
+                            grid: { color: colors.borderColor, borderDash: [5, 5] },
+                            ticks: { color: colors.textMuted, callback: (value) => '$' + value.toLocaleString() }
+                        }
+                    },
+                    interaction: { intersect: false, mode: 'index' }
+                }
+            };
+
+            if (revenueChart) revenueChart.destroy();
+            revenueChart = new Chart(ctx, config);
+        }
+
+        function updateChart(days) {
+            document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            initChart(days);
+        }
+
+        // ============================================
+        // REVENUE VIEW CHART (Larger)
+        // ============================================
+        let revenueChartLarge = null;
+        let revenueChartLargeCtx = null;
+        let revenueGradientLarge = null;
+
+        // Generate extended data for 90 days
+        function generateExtendedData() {
+            const data = [];
+            let baseValue = 18000;
+            for (let i = 89; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                // Add some randomness with general upward trend
+                baseValue += Math.random() * 200 - 50;
+                baseValue = Math.max(17000, Math.min(27000, baseValue));
+                data.push({
+                    date: d.toISOString().split('T')[0],
+                    mrr: Math.round(baseValue * 100) / 100
+                });
+            }
+            // Ensure last value matches our current MRR
+            data[data.length - 1].mrr = 26012;
+            return data;
+        }
+
+        const extendedMetricsData = generateExtendedData();
+
+        function initRevenueChartLarge(days) {
+            const canvas = document.getElementById('revenueChartLarge');
+            if (!canvas) return;
+
+            if (!revenueChartLargeCtx) {
+                revenueChartLargeCtx = canvas.getContext('2d');
+                revenueGradientLarge = revenueChartLargeCtx.createLinearGradient(0, 0, 0, 350);
+                revenueGradientLarge.addColorStop(0, 'rgba(99, 102, 241, 0.5)');
+                revenueGradientLarge.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
+            }
+
+            // Use extended data or Supabase data if available
+            const sourceData = metricsData.length > 0 ? metricsData : extendedMetricsData;
+
+            // For 90 days, use extended data
+            let chartData;
+            if (days === 90) {
+                chartData = extendedMetricsData.slice(-90);
+            } else {
+                chartData = sourceData.slice(-days);
+            }
+
+            const labels = chartData.map(d => formatDate(d.date));
+            const values = chartData.map(d => parseFloat(d.mrr));
+
+            const config = {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Revenue ($)',
+                        data: values,
+                        borderColor: '#6366F1',
+                        backgroundColor: revenueGradientLarge,
+                        borderWidth: 2,
+                        pointBackgroundColor: '#1F2937',
+                        pointBorderColor: '#6366F1',
+                        pointHoverBackgroundColor: '#6366F1',
+                        pointHoverBorderColor: '#fff',
+                        pointRadius: days > 30 ? 0 : 3,
+                        pointHoverRadius: 5,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#111827',
+                            titleColor: '#F3F4F6',
+                            bodyColor: '#F3F4F6',
+                            borderColor: '#374151',
+                            borderWidth: 1,
+                            padding: 12,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return '$ ' + context.parsed.y.toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                color: '#6B7280',
+                                maxTicksLimit: days > 30 ? 8 : 10
+                            }
+                        },
+                        y: {
+                            grid: { color: '#374151', borderDash: [5, 5] },
+                            ticks: {
+                                color: '#6B7280',
+                                callback: (value) => '$' + value.toLocaleString()
+                            }
+                        }
+                    },
+                    interaction: { intersect: false, mode: 'index' }
+                }
+            };
+
+            if (revenueChartLarge) revenueChartLarge.destroy();
+            revenueChartLarge = new Chart(revenueChartLargeCtx, config);
+        }
+
+        function updateRevenueChart(days) {
+            // Update toggle buttons within the revenue view only
+            const revenueView = document.getElementById('revenue-view');
+            if (revenueView) {
+                revenueView.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+            }
+            event.target.classList.add('active');
+            initRevenueChartLarge(days);
+        }
+
+        // Initialize revenue chart when view becomes active
+        function initRevenueViewChart() {
+            // Check if revenue view is active and chart not yet initialized
+            const revenueView = document.getElementById('revenue-view');
+            if (revenueView && revenueView.classList.contains('active') && !revenueChartLarge) {
+                initRevenueChartLarge(30);
+            }
+        }
+
+        // ============================================
+        // MAIN INITIALIZATION
+        // ============================================
+        async function initDashboard() {
+            try {
+                updateConnectionStatus(false, 'Loading data...');
+
+                // Fetch all data in parallel
+                const [metrics, activities, funnel] = await Promise.all([
+                    fetchDailyMetrics(),
+                    fetchActivityLog(),
+                    fetchFunnelData()
+                ]);
+
+                // Store metrics for chart
+                metricsData = metrics;
+
+                // Update all UI components
+                updateKPIs(metrics);
+                updateActivityTable(activities);
+                updateFunnel(funnel);
+                initChart(30);
+
+                updateConnectionStatus(true, 'Connected to Supabase');
+
+            } catch (err) {
+                console.error('Dashboard initialization error:', err);
+                updateConnectionStatus(false, 'Connection failed');
+            }
+        }
+
+        // Initialize dashboard on load
+        document.addEventListener('DOMContentLoaded', initDashboard);
+
+        // ============================================
+        // SIDEBAR TOGGLE FUNCTIONALITY
+        // ============================================
+        function initSidebarToggle() {
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.getElementById('sidebar-toggle');
+            const mainContent = document.querySelector('.main-content');
+
+            // Check for saved state in localStorage
+            const isLocked = localStorage.getItem('sidebarLocked') === 'true';
+            if (isLocked) {
+                sidebar.classList.add('sidebar-locked');
+                mainContent.classList.add('main-content-expanded');
+            }
+
+            toggle.addEventListener('click', function() {
+                const isCurrentlyLocked = sidebar.classList.contains('sidebar-locked');
+
+                if (isCurrentlyLocked) {
+                    // Unlock sidebar
+                    sidebar.classList.remove('sidebar-locked');
+                    mainContent.classList.remove('main-content-expanded');
+                    localStorage.setItem('sidebarLocked', 'false');
+                } else {
+                    // Lock sidebar open
+                    sidebar.classList.add('sidebar-locked');
+                    mainContent.classList.add('main-content-expanded');
+                    localStorage.setItem('sidebarLocked', 'true');
+                }
+            });
+        }
+
+        // Initialize sidebar toggle on load
+        document.addEventListener('DOMContentLoaded', initSidebarToggle);
+
+        // ============================================
+        // NAVIGATION VIEW SWITCHING
+        // ============================================
+        function initNavigation() {
+            const navLinks = document.querySelectorAll('.nav-link[data-view]');
+            const viewContainers = document.querySelectorAll('.view-container');
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    const targetView = this.getAttribute('data-view');
+
+                    // Update active nav link
+                    navLinks.forEach(nav => nav.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // Switch views
+                    viewContainers.forEach(view => {
+                        view.classList.remove('active');
+                        if (view.id === targetView + '-view') {
+                            view.classList.add('active');
+                        }
+                    });
+
+                    // Initialize view-specific charts
+                    if (targetView === 'revenue') {
+                        // Delay to ensure canvas is visible before initializing
+                        setTimeout(() => initRevenueChartLarge(30), 50);
+                    }
+
+                    // Save current view to localStorage
+                    localStorage.setItem('currentView', targetView);
+                });
+            });
+
+            // Restore last viewed page on load
+            const savedView = localStorage.getItem('currentView');
+            if (savedView) {
+                const savedLink = document.querySelector(`.nav-link[data-view="${savedView}"]`);
+                if (savedLink) {
+                    savedLink.click();
+                }
+            }
+        }
+
+        // Initialize navigation on load
+        document.addEventListener('DOMContentLoaded', initNavigation);
+
+        // ============================================
+        // SETTINGS TOGGLE FUNCTIONALITY WITH LOCALSTORAGE
+        // ============================================
+
+        // Default values for settings (used when no localStorage value exists)
+        const settingsDefaults = {
+            'setting_email_notifications': true,
+            'setting_push_notifications': true,
+            'setting_weekly_digest': false,
+            'setting_marketing_emails': false,
+            'setting_two_factor_auth': true
+        };
+
+        function initSettings() {
+            const settingsView = document.getElementById('settings-view');
+            if (!settingsView) return;
+
+            const toggles = settingsView.querySelectorAll('.settings-toggle');
+
+            toggles.forEach(label => {
+                const checkbox = label.querySelector('input[type="checkbox"]');
+                const slider = label.querySelector('.settings-slider');
+                const knob = label.querySelector('.settings-knob');
+
+                if (checkbox && slider && knob) {
+                    const settingKey = checkbox.getAttribute('data-setting');
+                    const settingLabel = checkbox.getAttribute('data-label');
+
+                    // Load saved state from localStorage (or use default)
+                    const savedValue = localStorage.getItem(settingKey);
+                    if (savedValue !== null) {
+                        checkbox.checked = savedValue === 'true';
+                    } else {
+                        // Use default value
+                        checkbox.checked = settingsDefaults[settingKey] || false;
+                    }
+
+                    // Update visual state
+                    updateToggleVisual(checkbox, slider, knob);
+
+                    // Update 2FA status badge if this is the 2FA toggle
+                    if (settingKey === 'setting_two_factor_auth') {
+                        updateTwoFABadge(checkbox.checked);
+                    }
+
+                    // Add change listener
+                    checkbox.addEventListener('change', function() {
+                        // Update visual
+                        updateToggleVisual(this, slider, knob);
+
+                        // Save to localStorage
+                        localStorage.setItem(settingKey, this.checked);
+
+                        // Log the change
+                        const status = this.checked ? 'enabled' : 'disabled';
+                        console.log(`${settingLabel}: ${status}`);
+
+                        // Update 2FA status badge if this is the 2FA toggle
+                        if (settingKey === 'setting_two_factor_auth') {
+                            updateTwoFABadge(this.checked);
+                        }
+                    });
+                }
+            });
+
+            console.log('Settings initialized from localStorage');
+        }
+
+        function updateToggleVisual(checkbox, slider, knob) {
+            if (checkbox.checked) {
+                slider.style.background = 'var(--success)';
+                knob.style.transform = 'translateX(22px)';
+            } else {
+                slider.style.background = '#374151';
+                knob.style.transform = 'translateX(0)';
+            }
+        }
+
+        function updateTwoFABadge(isEnabled) {
+            const badge = document.getElementById('twofa-status-badge');
+            if (!badge) return;
+
+            if (isEnabled) {
+                badge.style.background = 'rgba(16, 185, 129, 0.15)';
+                badge.style.color = 'var(--success)';
+                badge.innerHTML = '<i class="fa-solid fa-check" style="font-size: 0.65rem;"></i> Enabled';
+            } else {
+                badge.style.background = 'rgba(107, 114, 128, 0.15)';
+                badge.style.color = 'var(--text-muted)';
+                badge.innerHTML = '<i class="fa-solid fa-xmark" style="font-size: 0.65rem;"></i> Disabled';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initSettings);
+
+        // ============================================
+        // THEME TOGGLE FUNCTIONALITY
+        // ============================================
+        function initThemeToggle() {
+            const savedTheme = localStorage.getItem('dashboard-theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateActiveThemeOptions(savedTheme);
+
+            // Toggle dropdown open/close
+            const toggleButtons = document.querySelectorAll('.theme-toggle');
+            toggleButtons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const selector = btn.closest('.theme-selector');
+                    // Close all other dropdowns
+                    document.querySelectorAll('.theme-selector.open').forEach(s => {
+                        if (s !== selector) s.classList.remove('open');
+                    });
+                    selector.classList.toggle('open');
+                });
+            });
+
+            // Theme option selection
+            const themeOptions = document.querySelectorAll('.theme-option');
+            themeOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    const themeName = option.getAttribute('data-theme');
+                    setTheme(themeName);
+                    // Close dropdown
+                    option.closest('.theme-selector').classList.remove('open');
+                });
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.theme-selector')) {
+                    document.querySelectorAll('.theme-selector.open').forEach(s => {
+                        s.classList.remove('op
